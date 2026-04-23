@@ -768,3 +768,131 @@ nav {
   transition:color 0.2s, border-color 0.2s;
 }
 .admin-link:hover { color:rgba(200,200,192,0.7); border-color:rgba(255,255,255,0.2); }
+
+/* ── HAMBURGER ── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 10;
+}
+.nav-hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--white);
+  border-radius: 2px;
+  transition: transform 0.25s, opacity 0.25s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════ */
+
+/* ── TABLET (≤ 900px) ── */
+@media (max-width: 900px) {
+  /* Sections */
+  .section { padding: 60px 32px; }
+  .join-section { padding: 80px 32px; }
+
+  /* Nav */
+  .nav-hamburger { display: flex; }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 64px; left: 0; right: 0;
+    background: rgba(4,19,59,0.98);
+    flex-direction: column;
+    padding: 16px 24px 24px;
+    gap: 4px;
+    border-bottom: 1px solid rgba(232,0,29,0.2);
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { padding: 12px 8px; font-size: 14px; }
+  .lang-switcher { margin-left: auto; }
+
+  /* Events */
+  .next-event-grid { grid-template-columns: 1fr; gap: 20px; }
+
+  /* Results */
+  .results-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Calendar */
+  .calendar-match {
+    grid-template-columns: 72px 1fr;
+    grid-template-rows: auto auto;
+  }
+  .cal-time {
+    grid-column: 2;
+    text-align: left;
+    margin-top: 4px;
+  }
+  .calendar-match:hover { margin: 0 -32px; padding: 20px 32px; }
+
+  /* History */
+  .history-timeline { grid-template-columns: repeat(2, 1fr); }
+
+  /* Memory modal nav arrows — inside on tablet */
+  .memory-modal-prev { left: 8px; }
+  .memory-modal-next { right: 8px; }
+}
+
+/* ── MOBILE (≤ 600px) ── */
+@media (max-width: 600px) {
+  /* Sections */
+  .section { padding: 48px 20px; }
+  .join-section { padding: 64px 20px; }
+  .section-header { margin-bottom: 28px; }
+
+  /* Nav */
+  .nav-brand { font-size: 18px; }
+  .lang-switcher { padding-left: 10px; margin-left: 8px; }
+
+  /* Hero */
+  .hero { aspect-ratio: 4/3; }
+
+  /* Logo section */
+  .logo-section { padding: 56px 24px 72px; }
+  .psg-crest { width: 140px; }
+
+  /* Events */
+  .event-featured { padding: 24px; }
+  .event-name { font-size: 28px; }
+  .event-item { grid-template-columns: 48px 1fr; gap: 12px; }
+  .event-map-sm { display: none; }
+
+  /* Results */
+  .results-grid { grid-template-columns: 1fr; }
+  .result-card { padding: 14px 16px; }
+  .score { font-size: 22px; }
+  .team-name { font-size: 13px; }
+
+  /* Calendar */
+  .calendar-match { grid-template-columns: 1fr; gap: 8px; padding: 16px 0; }
+  .cal-time { text-align: left; }
+  .calendar-match:hover { margin: 0; padding: 16px 0; }
+
+  /* History */
+  .history-timeline { grid-template-columns: 1fr; }
+  .memory-modal-prev { left: 4px; }
+  .memory-modal-next { right: 4px; }
+  .memory-modal-nav { width: 32px; height: 48px; font-size: 20px; }
+
+  /* Join */
+  .qr-wrapper { padding: 14px; }
+
+  /* Contribute modal */
+  .member-modal { padding: 24px 20px; }
+  .type-grid { grid-template-columns: 1fr; }
+
+  /* Comp filters */
+  .comp-filters { gap: 6px; }
+  .comp-chip { font-size: 11px; padding: 5px 10px; }
+}
