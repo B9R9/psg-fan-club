@@ -4,9 +4,9 @@
       <h2 class="section-title">{{ t('section_next_event').split(' ')[0] }} <span>{{ t('section_next_event').split(' ').slice(1).join(' ') }}</span></h2>
       <div class="section-rule"></div>
     </div>
-    <div class="next-event-grid">
+    <div class="next-event-grid" v-if="featured">
       <!-- Featured event -->
-      <div class="event-featured" v-if="featured">
+      <div class="event-featured">
         <div class="event-badge">{{ t('event_badge') }}</div>
         <div class="event-name">{{ featured.name }}</div>
         <div class="event-meta">
@@ -35,6 +35,9 @@
         </div>
       </div>
     </div>
+    <div v-else class="event-empty">
+      {{ t('event_none_upcoming') }}
+    </div>
   </section>
 </template>
 
@@ -47,7 +50,22 @@ const props = defineProps({ events: Array })
 const { t: tComputed } = useI18n()
 const t = (key) => tComputed.value(key)
 
-const sorted = computed(() => [...(props.events || [])].sort((a, b) => a.date.localeCompare(b.date)))
+const upcoming = computed(() => {
+  const now = Date.now()
+  return (props.events || []).filter((ev) => toEventTimestamp(ev) >= now)
+})
+const sorted = computed(() => [...upcoming.value].sort((a, b) => toEventTimestamp(a) - toEventTimestamp(b)))
 const featured = computed(() => sorted.value.find(e => e.featured) || sorted.value[0])
 const rest = computed(() => sorted.value.filter(e => e.id !== featured.value?.id))
+
+function toEventTimestamp(ev) {
+  if (!ev?.date) return 0
+  const base = /^\d{4}-\d{2}-\d{2}$/.test(ev.date) ? ev.date : ''
+  if (!base) return 0
+
+  // If no explicit kickoff time is set, keep the event visible for the whole day.
+  const time = ev.time && /^\d{2}:\d{2}$/.test(ev.time) ? ev.time : '23:59'
+  const ts = Date.parse(`${base}T${time}:00`)
+  return Number.isNaN(ts) ? 0 : ts
+}
 </script>

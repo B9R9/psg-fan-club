@@ -73,7 +73,7 @@ const editing = ref(null)
 const blank = () => ({ id: Date.now(), author: '', title: '', text: '', type: 'text', date: '' })
 
 onMounted(async () => {
-  const { data } = await sb.from('history').select('*')
+  const { data } = await sb.from('history').select('*').order('date', { ascending: false })
   memories.value = data?.length ? data : DEFAULT_HISTORY
 })
 

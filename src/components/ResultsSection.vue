@@ -29,7 +29,7 @@
         <div class="team-name away">{{ r.away }}</div>
         <div class="result-meta">
           <span class="result-comp">{{ r.competition }}</span>
-          <span>{{ r.date }}</span>
+          <span>{{ formatResultDate(r.date) }}</span>
         </div>
       </div>
     </div>
@@ -74,6 +74,13 @@ const paginated = computed(() => {
 
 function isPsgHome(r) { return r.home.toUpperCase().includes('PSG') }
 function outcome(r) { return resultOutcome(r) }
+
+function formatResultDate(dateStr) {
+  if (!dateStr) return ''
+  const parts = dateStr.split('-')
+  if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`
+  return dateStr
+}
 </script>
 
 <style scoped>

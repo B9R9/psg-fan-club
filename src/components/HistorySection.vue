@@ -60,7 +60,7 @@
       <div class="memory-modal">
         <!-- Prev / Next arrows -->
         <button class="memory-modal-nav memory-modal-prev" @click="navigateModal(-1)" :disabled="selectedIndex <= 0">‹</button>
-        <button class="memory-modal-nav memory-modal-next" @click="navigateModal(1)" :disabled="selectedIndex >= (props.memories?.length ?? 0) - 1">›</button>
+        <button class="memory-modal-nav memory-modal-next" @click="navigateModal(1)" :disabled="selectedIndex >= orderedMemories.length - 1">›</button>
         <div class="memory-modal-inner">
         <button class="memory-modal-close" @click="closeMemory()">✕</button>
         <!-- Media -->
@@ -82,7 +82,7 @@
           <div class="memory-modal-meta">
             <span class="memory-modal-author">{{ selected.author }}</span>
             <span class="memory-modal-date">{{ fmtDate(selected.date) }}</span>
-            <span class="memory-modal-counter">{{ selectedIndex + 1 }} / {{ props.memories?.length }}</span>
+            <span class="memory-modal-counter">{{ selectedIndex + 1 }} / {{ orderedMemories.length }}</span>
           </div>
           <div v-if="selected.text" class="memory-modal-text">{{ selected.text }}</div>
         </div>
@@ -102,12 +102,17 @@ defineEmits(['open-modal'])
 const { t: tComputed } = useI18n()
 const t = (key) => tComputed.value(key)
 
-const PER_PAGE = 5
+const PER_PAGE = 6
 const page = ref(1)
 const selected = ref(null)
+const orderedMemories = computed(() => {
+  return [...(props.memories || [])].sort((a, b) => {
+    return toTimestamp(b?.date) - toTimestamp(a?.date)
+  })
+})
 const selectedIndex = computed(() => {
-  if (!selected.value || !props.memories) return -1
-  return props.memories.findIndex(m => m.id === selected.value.id)
+  if (!selected.value) return -1
+  return orderedMemories.value.findIndex(m => m.id === selected.value.id)
 })
 
 // Comments — TODO
@@ -122,12 +127,21 @@ function closeMemory() {
 }
 function navigateModal(dir) {
   const idx = selectedIndex.value + dir
-  if (idx >= 0 && idx < (props.memories?.length ?? 0)) {
-    selected.value = props.memories[idx]
+  if (idx >= 0 && idx < orderedMemories.value.length) {
+    selected.value = orderedMemories.value[idx]
   }
 }
-const totalPages = computed(() => Math.ceil((props.memories?.length || 0) / PER_PAGE))
-const paginated = computed(() => (props.memories || []).slice((page.value - 1) * PER_PAGE, page.value * PER_PAGE))
+const totalPages = computed(() => Math.ceil(orderedMemories.value.length / PER_PAGE))
+const paginated = computed(() => orderedMemories.value.slice((page.value - 1) * PER_PAGE, page.value * PER_PAGE))
+
+function toTimestamp(value) {
+  if (!value) return 0
+  if (/^\d{4}$/.test(value)) return Date.parse(`${value}-01-01T00:00:00Z`) || 0
+  if (/^\d{4}-\d{2}$/.test(value)) return Date.parse(`${value}-01T00:00:00Z`) || 0
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return Date.parse(`${value}T00:00:00Z`) || 0
+  const parsed = Date.parse(value)
+  return Number.isNaN(parsed) ? 0 : parsed
+}
 
 function typeBg(type) {
   return type === 'video' ? '#1a0808' : type === 'photo' ? '#0a1838' : '#06091a'

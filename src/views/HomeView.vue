@@ -46,7 +46,7 @@ onMounted(async () => {
   ] = await Promise.all([
     sb.from('matches').select(MATCHES_SELECT),
     sb.from('events').select('*'),
-    sb.from('history').select('*'),
+    sb.from('history').select('*').order('date', { ascending: false }),
     sb.from('settings').select('*').eq('id', 1).single(),
   ])
 
