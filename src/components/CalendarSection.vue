@@ -26,7 +26,10 @@
               <span style="color:rgba(255,255,255,0.3);font-size:16px"> vs </span>
               {{ m.away }}
             </div>
-            <div class="cal-comp">{{ m.competition }}</div>
+            <div class="cal-comp-row">
+              <div class="cal-comp">{{ m.competition }}</div>
+              <div v-if="matchPhase(m)" class="cal-phase">{{ matchPhase(m) }}</div>
+            </div>
             <div v-if="m.venueName" class="cal-comp" style="opacity:0.5;font-size:12px;">{{ m.venueName }}</div>
           </div>
         </div>
@@ -80,6 +83,34 @@ const paginated = computed(() => {
   return sorted.value.slice(start, start + PER_PAGE)
 })
 const fmt = (dateStr) => fmtDate(dateStr)
+
+function isLeagueCompetition(name) {
+  const value = String(name || '').toLowerCase()
+  return /league|ligue|championnat/.test(value) && !/champions/.test(value)
+}
+
+function isChampionsCompetition(name) {
+  const value = String(name || '').toLowerCase()
+  return /champions/.test(value)
+}
+
+function knockoutLabel(value) {
+  if (value === -16) return 'Seizième de finale'
+  if (value === -8) return 'Huitième de finale'
+  if (value === -4) return 'Quart de finale'
+  if (value === -2) return 'Demi-finale'
+  if (value === -1) return 'Finale'
+  return ''
+}
+
+function matchPhase(match) {
+  if (!match?.matchday) return ''
+  const value = Number(match.matchday)
+  if (Number.isNaN(value)) return ''
+  if (isLeagueCompetition(match.competition)) return `Journée ${value}`
+  if (isChampionsCompetition(match.competition)) return value > 0 ? `Journée ${value}` : knockoutLabel(value)
+  return value < 0 ? knockoutLabel(value) : `Tour ${value}`
+}
 </script>
 
 <style scoped>

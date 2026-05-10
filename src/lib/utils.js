@@ -1,9 +1,14 @@
 export function resultOutcome(r) {
-  const psgHome = r.home.toUpperCase().includes('PSG')
-  const psgAway = r.away.toUpperCase().includes('PSG')
+  const psgHome = isPsgTeamName(r.home)
+  const psgAway = isPsgTeamName(r.away)
   if (psgHome) return r.scoreHome > r.scoreAway ? 'win' : r.scoreHome < r.scoreAway ? 'loss' : 'draw'
   if (psgAway) return r.scoreAway > r.scoreHome ? 'win' : r.scoreAway < r.scoreHome ? 'loss' : 'draw'
   return 'draw'
+}
+
+function isPsgTeamName(name) {
+  const value = String(name || '').toLowerCase()
+  return value.includes('psg') || value.includes('paris')
 }
 
 export function toHelsinkiTime(dateStr, timeStr) {

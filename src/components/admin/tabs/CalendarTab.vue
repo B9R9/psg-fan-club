@@ -17,6 +17,7 @@
           <th :style="s.th">Time</th>
           <th :style="s.th">Match</th>
           <th :style="s.th">Competition</th>
+          <th :style="s.th">Phase</th>
           <th :style="s.th">Venue</th>
           <th :style="s.th"></th>
         </tr></thead>
@@ -26,6 +27,7 @@
             <td :style="s.td">{{ m.time }}</td>
             <td :style="{ ...s.td, fontWeight:600, color:'#f4f4f2' }">{{ m.home }} vs {{ m.away }}</td>
             <td :style="s.td">{{ m.competition }}</td>
+            <td :style="s.td">{{ phaseLabel(m) }}</td>
             <td :style="s.td">
               <span :style="{ ...s.chip,
                 background: m.venue==='home' ? 'rgba(232,0,29,0.15)' : m.venue==='away' ? 'rgba(200,168,75,0.15)' : 'rgba(255,255,255,0.08)',
@@ -68,8 +70,36 @@ const scoring      = ref(null)
 const teams        = ref([])
 const competitions = ref([])
 
-const blank  = () => ({ id: null, homeInput: '', awayInput: '', homeTeamId: null, awayTeamId: null, venueName: '', neutral: false, competitionId: null, date: '', time: '21:00', status: 'upcoming' })
+const blank  = () => ({ id: null, homeInput: '', awayInput: '', homeTeamId: null, awayTeamId: null, venueName: '', neutral: false, competitionId: null, matchday: null, date: '', time: '21:00', status: 'upcoming' })
 const sorted = computed(() => [...(matches.value || [])].sort((a, b) => a.date.localeCompare(b.date)))
+
+function isLeagueCompetition(name) {
+  const value = String(name || '').toLowerCase()
+  return /league|ligue|championnat/.test(value) && !/champions/.test(value)
+}
+
+function isChampionsCompetition(name) {
+  const value = String(name || '').toLowerCase()
+  return /champions/.test(value)
+}
+
+function knockoutLabel(value) {
+  if (value === -16) return 'Seizième'
+  if (value === -8) return 'Huitième'
+  if (value === -4) return 'Quart'
+  if (value === -2) return 'Demi'
+  if (value === -1) return 'Finale'
+  return ''
+}
+
+function phaseLabel(match) {
+  if (!match?.matchday) return '—'
+  const value = Number(match.matchday)
+  if (Number.isNaN(value)) return '—'
+  if (isLeagueCompetition(match.competition)) return `J${value}`
+  if (isChampionsCompetition(match.competition)) return value > 0 ? `J${value}` : knockoutLabel(value)
+  return value < 0 ? knockoutLabel(value) : `Tour ${value}`
+}
 
 async function findOrCreateTeam(name) {
   if (!name?.trim()) return null
@@ -136,7 +166,7 @@ async function upsert() {
     id,
     home: homeName,
     away: item.awayInput || '',
-    competition: competitions.value.find(c => c.id === dbItem.competitionId)?.name || '',
+    competition: competitions.value.find(c => String(c.id) === String(dbItem.competitionId))?.name || '',
     venue: isPsg(homeName) ? 'home' : 'away',
     venueName: item.venueName || '',
   }

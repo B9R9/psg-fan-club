@@ -61,11 +61,11 @@ export const mapMember   = r => {
 export const mapSettings = r => ({ joinUrl:r.join_url, videoUrl:r.video_url, heroTitle:r.hero_title||'Helsinki PSG Supporters Club', joinBg:r.join_bg||null })
 
 export const MATCHES_SELECT = `
-  id, match_date, kickoff_time, home_score, away_score, status, venue_name,
+  id, matchday, match_date, kickoff_time, home_score, away_score, status, venue_name,
   home_team_id, away_team_id, competition_id,
   home_team:teams!matches_home_team_id_fkey(id, name),
   away_team:teams!matches_away_team_id_fkey(id, name),
-  competition:competitions!matches_competition_id_fkey(id, name)
+  competition:competitions!matches_competition_id_fkey(id, name, code, type)
 `
 
 const isPsgTeam = name => !!name && (name.toLowerCase().includes('psg') || name.toLowerCase().includes('paris'))
@@ -75,6 +75,9 @@ export const mapMatch = r => ({
   home: r.home_team?.name || '',
   away: r.away_team?.name || '',
   competition: r.competition?.name || '',
+  competitionCode: r.competition?.code || '',
+  competitionType: r.competition?.type || '',
+  matchday: r.matchday ?? null,
   date: r.match_date,
   time: r.kickoff_time,
   venue: isPsgTeam(r.home_team?.name) ? 'home' : 'away',
@@ -89,6 +92,7 @@ export const mapMatch = r => ({
 
 export const toDbMatch = m => {
   const row = {
+    matchday: m.matchday ?? null,
     match_date: m.date,
     kickoff_time: m.time || null,
     home_team_id: m.homeTeamId,

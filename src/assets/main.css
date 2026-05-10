@@ -467,6 +467,8 @@ nav {
 .result-meta { grid-column:1/-1; display:flex; justify-content:space-between; margin-top:4px; }
 .result-meta span { font-family:'Barlow',sans-serif; font-size:11px; color:var(--offwhite); opacity:0.45; letter-spacing:0.05em; }
 .result-comp { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); opacity:0.8; }
+.result-comp-block { display:flex; flex-direction:column; gap:2px; }
+.result-phase { font-family:'Barlow',sans-serif; font-size:10px; color:var(--offwhite); opacity:0.55; letter-spacing:0.05em; }
 
 /* ── CALENDAR ── */
 .calendar-list { display:flex; flex-direction:column; gap:0; }
@@ -484,6 +486,8 @@ nav {
 .cal-vs { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.08em; color:var(--white); }
 .cal-opponent { font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:600; color:var(--white); letter-spacing:0.04em; }
 .cal-comp { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); opacity:0.7; }
+.cal-comp-row { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.cal-phase { font-family:'Barlow',sans-serif; font-size:11px; letter-spacing:0.08em; color:var(--offwhite); opacity:0.6; white-space:nowrap; }
 .cal-time { font-family:'Barlow Condensed',sans-serif; font-size:14px; letter-spacing:0.06em; color:var(--offwhite); opacity:0.6; text-align:right; }
 .cal-home-badge { display:inline-block; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; background:rgba(232,0,29,0.15); color:var(--red); border-radius:2px; padding:2px 6px; margin-top:4px; }
 .cal-away-badge { display:inline-block; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; background:rgba(200,168,75,0.12); color:var(--gold); border-radius:2px; padding:2px 6px; margin-top:4px; }
@@ -846,6 +850,7 @@ nav {
     text-align: left;
     margin-top: 4px;
   }
+  .cal-comp-row { gap: 8px; }
   .calendar-match:hover { margin: 0 -32px; padding: 20px 32px; }
 
   /* History */
@@ -889,6 +894,7 @@ nav {
   /* Calendar */
   .calendar-match { grid-template-columns: 1fr; gap: 8px; padding: 16px 0; }
   .cal-time { text-align: left; }
+  .cal-comp-row { flex-direction: column; align-items: flex-start; gap: 2px; }
   .calendar-match:hover { margin: 0; padding: 16px 0; }
 
   /* History */

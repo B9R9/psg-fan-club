@@ -17,6 +17,7 @@
           <th :style="s.th">Match</th>
           <th :style="s.th">Score</th>
           <th :style="s.th">Competition</th>
+          <th :style="s.th">Phase</th>
           <th :style="s.th">Result</th>
           <th :style="s.th"></th>
         </tr></thead>
@@ -26,6 +27,7 @@
             <td :style="{ ...s.td, fontWeight:600, color:'#f4f4f2' }">{{ r.home }} vs {{ r.away }}</td>
             <td :style="{ ...s.td, fontFamily:'Bebas Neue,sans-serif', fontSize:20 }">{{ r.scoreHome }} – {{ r.scoreAway }}</td>
             <td :style="s.td">{{ r.competition }}</td>
+            <td :style="s.td">{{ phaseLabel(r) }}</td>
             <td :style="s.td">
               <span :style="{ ...s.chip, background:`${outcomeColor(outcome(r))}20`, color:outcomeColor(outcome(r)) }">{{ outcome(r) }}</span>
             </td>
@@ -54,12 +56,39 @@ const editing      = ref(null)
 const teams        = ref([])
 const competitions = ref([])
 
-const blank = () => ({ id: null, homeInput: '', awayInput: '', homeTeamId: null, awayTeamId: null, venueName: '', neutral: false, competitionId: null, scoreHome: 0, scoreAway: 0, date: '', status: 'played' })
+const blank = () => ({ id: null, homeInput: '', awayInput: '', homeTeamId: null, awayTeamId: null, venueName: '', neutral: false, competitionId: null, matchday: null, scoreHome: 0, scoreAway: 0, date: '', status: 'played' })
 
 const sorted = computed(() => [...(results.value || [])].sort((a, b) => b.date.localeCompare(a.date)))
 
 function outcome(r) { return resultOutcome(r) }
 function outcomeColor(o) { return o === 'win' ? '#22c55e' : o === 'loss' ? '#e8001d' : '#c8a84b' }
+function isLeagueCompetition(name) {
+  const value = String(name || '').toLowerCase()
+  return /league|ligue|championnat/.test(value) && !/champions/.test(value)
+}
+
+function isChampionsCompetition(name) {
+  const value = String(name || '').toLowerCase()
+  return /champions/.test(value)
+}
+
+function knockoutLabel(value) {
+  if (value === -16) return 'Seizième'
+  if (value === -8) return 'Huitième'
+  if (value === -4) return 'Quart'
+  if (value === -2) return 'Demi'
+  if (value === -1) return 'Finale'
+  return ''
+}
+
+function phaseLabel(match) {
+  if (!match?.matchday) return '—'
+  const value = Number(match.matchday)
+  if (Number.isNaN(value)) return '—'
+  if (isLeagueCompetition(match.competition)) return `J${value}`
+  if (isChampionsCompetition(match.competition)) return value > 0 ? `J${value}` : knockoutLabel(value)
+  return value < 0 ? knockoutLabel(value) : `Tour ${value}`
+}
 
 onMounted(async () => {
   const [{ data: mData }, { data: tData }, { data: cData }] = await Promise.all([
@@ -87,7 +116,7 @@ async function upsert() {
     id,
     home: item.homeInput || teams.value.find(t => t.id === item.homeTeamId)?.name || '',
     away: item.awayInput || teams.value.find(t => t.id === item.awayTeamId)?.name || '',
-    competition: competitions.value.find(c => c.id === item.competitionId)?.name || '',
+    competition: competitions.value.find(c => String(c.id) === String(item.competitionId))?.name || '',
   }
   const exists = results.value.find(r => r.id === id)
   results.value = exists

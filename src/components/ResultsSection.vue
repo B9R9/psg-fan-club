@@ -28,7 +28,10 @@
         </div>
         <div class="team-name away">{{ r.away }}</div>
         <div class="result-meta">
-          <span class="result-comp">{{ r.competition }}</span>
+          <div class="result-comp-block">
+            <span class="result-comp">{{ r.competition }}</span>
+            <span v-if="matchPhase(r)" class="result-phase">{{ matchPhase(r) }}</span>
+          </div>
           <span>{{ formatResultDate(r.date) }}</span>
         </div>
       </div>
@@ -74,6 +77,34 @@ const paginated = computed(() => {
 
 function isPsgHome(r) { return r.home.toUpperCase().includes('PSG') }
 function outcome(r) { return resultOutcome(r) }
+
+function isLeagueCompetition(name) {
+  const value = String(name || '').toLowerCase()
+  return /league|ligue|championnat/.test(value) && !/champions/.test(value)
+}
+
+function isChampionsCompetition(name) {
+  const value = String(name || '').toLowerCase()
+  return /champions/.test(value)
+}
+
+function knockoutLabel(value) {
+  if (value === -16) return 'Seizième de finale'
+  if (value === -8) return 'Huitième de finale'
+  if (value === -4) return 'Quart de finale'
+  if (value === -2) return 'Demi-finale'
+  if (value === -1) return 'Finale'
+  return ''
+}
+
+function matchPhase(match) {
+  if (!match?.matchday) return ''
+  const value = Number(match.matchday)
+  if (Number.isNaN(value)) return ''
+  if (isLeagueCompetition(match.competition)) return `Journée ${value}`
+  if (isChampionsCompetition(match.competition)) return value > 0 ? `Journée ${value}` : knockoutLabel(value)
+  return value < 0 ? knockoutLabel(value) : `Tour ${value}`
+}
 
 function formatResultDate(dateStr) {
   if (!dateStr) return ''
