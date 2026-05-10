@@ -95,6 +95,7 @@ function isChampionsCompetition(name) {
 }
 
 function knockoutLabel(value) {
+  if (value === -12) return 'Tour de barrage'
   if (value === -16) return 'Seizième de finale'
   if (value === -8) return 'Huitième de finale'
   if (value === -4) return 'Quart de finale'

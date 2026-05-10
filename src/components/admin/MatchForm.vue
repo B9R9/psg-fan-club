@@ -4,7 +4,7 @@
       {{ model.id ? 'Edit' : 'New' }} {{ withScore ? 'Result' : 'Match' }}
     </div>
 
-    <div :style="{ display:'grid', gridTemplateColumns: withScore ? '1fr 1fr 80px 80px 1fr 120px 160px' : '1fr 1fr 1fr 120px 120px 120px', gap:'12px', alignItems:'end' }">
+    <div :style="{ display:'grid', gridTemplateColumns: withScore ? '1fr 1fr 80px 80px' : '1fr 1fr', gap:'12px', alignItems:'end' }">
       <AdminField label="Home Team">
         <div style="position:relative;">
           <input :style="s.input" v-model="model.homeInput" @input="onHomeChange" @focus="homeFocus=true" @blur="blurHome" placeholder="ex : PSG" autocomplete="off" />
@@ -27,59 +27,61 @@
         <AdminField label="Away Score"><input :style="s.input" type="number" min="0" v-model.number="model.scoreAway" /></AdminField>
       </template>
 
-      <AdminField label="Competition">
-        <select :style="{ ...s.select, width:'100%' }" v-model="model.competitionId">
-          <option :value="null">—</option>
-          <option v-for="c in competitions" :key="c.id" :value="c.id">{{ c.name }}</option>
-        </select>
-      </AdminField>
-      <AdminField :label="roundFieldLabel">
-        <template v-if="competitionKind === 'champions'">
-          <div :style="{ display:'grid', gap:'8px' }">
-            <select :style="{ ...s.select, width:'100%' }" v-model="championsMode">
-              <option value="league">Phase championnat</option>
-              <option value="knockout">Phase finale (tours)</option>
-            </select>
-            <select
-              v-if="championsMode === 'league'"
-              :style="{ ...s.select, width:'100%' }"
-              v-model.number="model.matchday"
-            >
-              <option :value="null">—</option>
-              <option v-for="day in championsLeagueDays" :key="day" :value="day">Journée {{ day }}</option>
-            </select>
-            <select
-              v-else
-              :style="{ ...s.select, width:'100%' }"
-              v-model.number="model.matchday"
-            >
-              <option :value="null">—</option>
-              <option v-for="opt in championsKnockoutOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-            </select>
-          </div>
-        </template>
-        <input
-          v-else-if="phaseInputMode === 'number'"
-          :style="s.input"
-          type="number"
-          min="1"
-          v-model.number="model.matchday"
-          :placeholder="roundFieldPlaceholder"
-        />
-        <select
-          v-else
-          :style="{ ...s.select, width:'100%' }"
-          v-model.number="model.matchday"
-        >
-          <option :value="null">—</option>
-          <option v-for="opt in phaseOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-        </select>
-      </AdminField>
-      <AdminField label="Date"><input :style="s.input" type="date" v-model="model.date" /></AdminField>
+      <div :style="{ gridColumn:'1 / -1', display:'grid', gridTemplateColumns: withScore ? '1fr 1fr 160px' : '1fr 1fr 160px 140px', gap:'12px', alignItems:'end' }">
+        <AdminField label="Competition">
+          <select :style="{ ...s.select, width:'100%' }" v-model="model.competitionId">
+            <option :value="null">—</option>
+            <option v-for="c in competitions" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
+        </AdminField>
+        <AdminField :label="roundFieldLabel">
+          <template v-if="competitionKind === 'champions'">
+            <div :style="{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }">
+              <select :style="{ ...s.select, width:'100%' }" v-model="championsMode">
+                <option value="league">Phase championnat</option>
+                <option value="knockout">Phase finale (tours)</option>
+              </select>
+              <select
+                v-if="championsMode === 'league'"
+                :style="{ ...s.select, width:'100%' }"
+                v-model.number="model.matchday"
+              >
+                <option :value="null">—</option>
+                <option v-for="day in championsLeagueDays" :key="day" :value="day">Journée {{ day }}</option>
+              </select>
+              <select
+                v-else
+                :style="{ ...s.select, width:'100%' }"
+                v-model.number="model.matchday"
+              >
+                <option :value="null">—</option>
+                <option v-for="opt in championsKnockoutOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+              </select>
+            </div>
+          </template>
+          <input
+            v-else-if="phaseInputMode === 'number'"
+            :style="s.input"
+            type="number"
+            min="1"
+            v-model.number="model.matchday"
+            :placeholder="roundFieldPlaceholder"
+          />
+          <select
+            v-else
+            :style="{ ...s.select, width:'100%' }"
+            v-model.number="model.matchday"
+          >
+            <option :value="null">—</option>
+            <option v-for="opt in phaseOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
+        </AdminField>
+        <AdminField label="Date"><input :style="s.input" type="date" v-model="model.date" /></AdminField>
 
-    <template v-if="!withScore">
-      <AdminField label="Time (CET)"><input :style="s.input" type="time" v-model="model.time" /></AdminField>
-    </template>
+        <template v-if="!withScore">
+          <AdminField label="Time (CET)"><input :style="s.input" type="time" v-model="model.time" /></AdminField>
+        </template>
+      </div>
     </div>
 
     <AdminField label="Stadium" style="margin-top:12px;">
@@ -153,6 +155,7 @@ const roundFieldLabel = computed(() => {
 const roundFieldPlaceholder = computed(() => competitionKind.value === 'league' ? 'ex : 32' : 'ex : 8')
 const championsLeagueDays = [1, 2, 3, 4, 5, 6, 7, 8]
 const championsKnockoutOptions = [
+  { value: -12, label: 'Tour de barrage' },
   { value: -8, label: 'Huitième de finale' },
   { value: -4, label: 'Quart de finale' },
   { value: -2, label: 'Demi-finale' },
@@ -174,6 +177,9 @@ const phaseOptions = computed(() => {
   if (competitionKind.value === 'champions') return []
   if (competitionKind.value === 'cup') {
     return [
+      { value: 9, label: '9e tour' },
+      { value: 10, label: '10e tour' },
+      { value: 11, label: '11e tour' },
       { value: -16, label: 'Seizième de finale' },
       { value: -8, label: 'Huitième de finale' },
       { value: -4, label: 'Quart de finale' },

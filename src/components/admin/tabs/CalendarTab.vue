@@ -84,6 +84,7 @@ function isChampionsCompetition(name) {
 }
 
 function knockoutLabel(value) {
+  if (value === -12) return 'Barrage'
   if (value === -16) return 'Seizième'
   if (value === -8) return 'Huitième'
   if (value === -4) return 'Quart'
