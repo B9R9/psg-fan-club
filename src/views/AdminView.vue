@@ -3,6 +3,7 @@
   <AdminLayout v-else :active-tab="tab" @set-tab="tab = $event" @logout="logout">
     <ResultsTab  v-if="tab === 'results'" />
     <CalendarTab v-else-if="tab === 'calendar'" />
+    <WorldCupTab v-else-if="tab === 'world-cup'" />
     <EventsTab   v-else-if="tab === 'events'" />
     <HistoryTab  v-else-if="tab === 'history'" />
     <MembersTab  v-else-if="tab === 'members'" />
@@ -17,6 +18,7 @@ import AdminLogin  from '../components/admin/AdminLogin.vue'
 import AdminLayout from '../components/admin/AdminLayout.vue'
 import ResultsTab  from '../components/admin/tabs/ResultsTab.vue'
 import CalendarTab from '../components/admin/tabs/CalendarTab.vue'
+import WorldCupTab from '../components/admin/tabs/WorldCupTab.vue'
 import EventsTab   from '../components/admin/tabs/EventsTab.vue'
 import HistoryTab  from '../components/admin/tabs/HistoryTab.vue'
 import MembersTab  from '../components/admin/tabs/MembersTab.vue'

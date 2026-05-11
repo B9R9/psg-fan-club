@@ -34,6 +34,7 @@ export const DEFAULT_SETTINGS = {
   videoUrl: 'https://www.youtube.com/embed/J_SJNftbFrk?si=kcBhasuoZdPlnCB9',
   heroTitle: 'Helsinki PSG Supporters Club',
   joinBg: null,
+  worldCupEnabled: false,
 }
 
 export const mapResult   = r => ({ id:r.id, home:r.home, away:r.away, scoreHome:r.score_home, scoreAway:r.score_away, competition:r.competition, date:r.date })
@@ -58,7 +59,13 @@ export const mapMember   = r => {
   }
   return { id:r.id, email:r.email, name:r.name||'', addedAt }
 }
-export const mapSettings = r => ({ joinUrl:r.join_url, videoUrl:r.video_url, heroTitle:r.hero_title||'Helsinki PSG Supporters Club', joinBg:r.join_bg||null })
+export const mapSettings = r => ({
+  joinUrl:r.join_url,
+  videoUrl:r.video_url,
+  heroTitle:r.hero_title||'Helsinki PSG Supporters Club',
+  joinBg:r.join_bg||null,
+  worldCupEnabled: !!r.world_cup_enabled,
+})
 
 export const MATCHES_SELECT = `
   id, matchday, match_date, kickoff_time, home_score, away_score, status, venue_name,

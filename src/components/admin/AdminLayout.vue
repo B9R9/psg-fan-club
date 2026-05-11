@@ -37,6 +37,7 @@ defineEmits(['set-tab', 'logout'])
 const TABS = [
   { id:'results',  label:'Results' },
   { id:'calendar', label:'Calendar' },
+  { id:'world-cup', label:'World Cup' },
   { id:'events',   label:'Events' },
   { id:'history',  label:'History' },
   { id:'members',  label:'Members' },

@@ -12,6 +12,7 @@
 
     <ul class="nav-links" :class="{ open: menuOpen }" @click="menuOpen = false">
       <li><a href="#next-event">{{ t('nav_next_event') }}</a></li>
+      <li><RouterLink to="/world-cup">World Cup</RouterLink></li>
       <li><a href="#results">{{ t('nav_results') }}</a></li>
       <li><a href="#calendar">{{ t('nav_calendar') }}</a></li>
       <li><a href="#history">{{ t('nav_history') }}</a></li>

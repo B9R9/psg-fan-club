@@ -23,6 +23,14 @@
       </AdminField>
     </div>
 
+    <div :style="s.card">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:0.1em;color:rgba(200,200,192,0.5);text-transform:uppercase;margin-bottom:20px;">World Cup Feature</div>
+      <label style="display:flex;align-items:center;gap:10px;font-family:'Barlow',sans-serif;color:#f4f4f2;">
+        <input type="checkbox" v-model="settings.worldCupEnabled" />
+        Show World Cup section on Home page
+      </label>
+    </div>
+
     <button :style="{ ...s.btn, ...s.btnPrimary }" @click="saveAll">Save Settings</button>
 
     <div style="margin-top:32px;padding:20px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:4px;">
@@ -54,6 +62,7 @@ async function saveAll() {
     video_url: settings.value.videoUrl,
     hero_title: settings.value.heroTitle,
     join_bg: settings.value.joinBg,
+    world_cup_enabled: !!settings.value.worldCupEnabled,
   }).eq('id', 1)
   if (error) { toast('Save failed: ' + error.message); return }
   toast('Settings saved')
