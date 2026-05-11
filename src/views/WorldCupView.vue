@@ -54,6 +54,35 @@
               <h3 class="wc-group-title">{{ group.label }}</h3>
 
               <div v-if="group.key !== 'other'" class="wc-group-table-wrap">
+                <div class="wc-standings-switcher">
+                  <span class="wc-standings-switcher-label">{{ t('wc_group_standings_toggle_label') }}</span>
+                  <div class="wc-standings-switcher-controls" role="tablist" :aria-label="t('wc_group_standings_toggle_label')">
+                    <button
+                      class="wc-standings-switcher-btn"
+                      :class="{ active: standingsView === 'real' }"
+                      type="button"
+                      role="tab"
+                      :aria-selected="standingsView === 'real'"
+                      @click="standingsView = 'real'"
+                    >
+                      {{ t('wc_group_standings_toggle_real') }}
+                    </button>
+                    <button
+                      class="wc-standings-switcher-btn"
+                      :class="{ active: standingsView === 'predictions' }"
+                      type="button"
+                      role="tab"
+                      :aria-selected="standingsView === 'predictions'"
+                      @click="standingsView = 'predictions'"
+                    >
+                      {{ t('wc_group_standings_toggle_pred') }}
+                    </button>
+                  </div>
+                  <p class="wc-standings-switcher-hint">
+                    {{ standingsView === 'real' ? t('wc_group_standings_real_hint') : t('wc_group_standings_pred_hint') }}
+                  </p>
+                </div>
+
                 <table class="wc-group-table">
                   <thead>
                     <tr>
@@ -66,7 +95,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="row in standingsByGroup.get(group.key) || []" :key="row.team">
+                    <tr v-for="row in activeStandingsByGroup.get(group.key) || []" :key="row.team">
                       <td>{{ teamLabel(row.team) }}</td>
                       <td>{{ row.played }}</td>
                       <td>{{ row.points }}</td>
@@ -74,8 +103,10 @@
                       <td>{{ row.gf }}</td>
                       <td>{{ row.ga }}</td>
                     </tr>
-                    <tr v-if="!(standingsByGroup.get(group.key) || []).length">
-                      <td colspan="6" class="wc-muted-cell">{{ t('wc_group_standings_waiting') }}</td>
+                    <tr v-if="!(activeStandingsByGroup.get(group.key) || []).length">
+                      <td colspan="6" class="wc-muted-cell">
+                        {{ standingsView === 'real' ? t('wc_group_standings_waiting') : t('wc_group_standings_predictions_waiting') }}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -134,6 +165,36 @@
         </section>
 
         <aside class="wc-side">
+          <section class="wc-card">
+            <h2>{{ t('wc_my_stats_title') }}</h2>
+            <p v-if="!myTodayStats.totalPredicted && !myTodayStats.totalEvaluated" class="wc-muted">{{ t('wc_my_rank_empty') }}</p>
+            <div v-else class="wc-my-stats">
+              <div class="wc-my-stats-grid">
+                <div class="wc-stat-pill">
+                  <span>{{ t('wc_today_predicted') }}</span>
+                  <strong>{{ myTodayStats.totalPredicted }}</strong>
+                </div>
+                <div class="wc-stat-pill">
+                  <span>{{ t('wc_today_exact') }}</span>
+                  <strong>{{ myTodayStats.exact }}</strong>
+                </div>
+                <div class="wc-stat-pill">
+                  <span>{{ t('wc_today_good') }}</span>
+                  <strong>{{ myTodayStats.good }}</strong>
+                </div>
+                <div class="wc-stat-pill">
+                  <span>{{ t('wc_today_bad') }}</span>
+                  <strong>{{ myTodayStats.bad }}</strong>
+                </div>
+              </div>
+              <div class="wc-my-rank-meta">
+                <strong>{{ t('wc_my_rank_label') }}</strong>
+                <span v-if="myLeaderboardRow">#{{ myRank }} · {{ myLeaderboardRow.points }} {{ t('wc_points_short') }}</span>
+                <span v-else>{{ t('wc_my_rank_pending') }}</span>
+              </div>
+            </div>
+          </section>
+
           <section class="wc-card">
             <h2>{{ t('wc_leaderboard_title') }}</h2>
             <p v-if="!leaderboard.length" class="wc-muted">{{ t('wc_leaderboard_empty') }}</p>
@@ -199,6 +260,7 @@ const savingMatchId = ref(null)
 const teamMetaMap = ref(new Map())
 const selectedGroup = ref('all')
 const selectedFinalRound = ref('all')
+const standingsView = ref('real')
 
 const accessGranted = ref(false)
 const accessLoading = ref(false)
@@ -277,7 +339,7 @@ const availableFinalRounds = computed(() => {
   return rounds
 })
 
-const standingsByGroup = computed(() => {
+function buildStandingsByGroup(scoreResolver, seedAllTeams = false) {
   const tableByGroup = new Map()
 
   for (const match of matches.value) {
@@ -290,25 +352,28 @@ const standingsByGroup = computed(() => {
     ensureStandingRow(groupTable, match.home_team)
     ensureStandingRow(groupTable, match.away_team)
 
-    if (match.status !== 'played' || match.home_score == null || match.away_score == null) continue
+    const score = scoreResolver(match)
+    if (!score) continue
 
     const home = groupTable.get(match.home_team)
     const away = groupTable.get(match.away_team)
+    const homeScore = Number(score.home)
+    const awayScore = Number(score.away)
 
     home.played += 1
     away.played += 1
-    home.gf += Number(match.home_score)
-    home.ga += Number(match.away_score)
-    away.gf += Number(match.away_score)
-    away.ga += Number(match.home_score)
+    home.gf += homeScore
+    home.ga += awayScore
+    away.gf += awayScore
+    away.ga += homeScore
     home.gd = home.gf - home.ga
     away.gd = away.gf - away.ga
 
-    if (match.home_score > match.away_score) {
+    if (homeScore > awayScore) {
       home.points += 3
       home.wins += 1
       away.losses += 1
-    } else if (match.home_score < match.away_score) {
+    } else if (homeScore < awayScore) {
       away.points += 3
       away.wins += 1
       home.losses += 1
@@ -333,6 +398,27 @@ const standingsByGroup = computed(() => {
   }
 
   return result
+}
+
+const realStandingsByGroup = computed(() => {
+  return buildStandingsByGroup((match) => {
+    if (match.status !== 'played') return null
+    if (match.home_score == null || match.away_score == null) return null
+    return { home: match.home_score, away: match.away_score }
+  }, true)
+})
+
+const standingsByGroup = computed(() => {
+  const predictionMap = myPredictionMap.value
+  return buildStandingsByGroup((match) => {
+    const prediction = predictionMap.get(match.id)
+    if (!prediction || prediction.predicted_home == null || prediction.predicted_away == null) return null
+    return { home: prediction.predicted_home, away: prediction.predicted_away }
+  })
+})
+
+const activeStandingsByGroup = computed(() => {
+  return standingsView.value === 'real' ? realStandingsByGroup.value : standingsByGroup.value
 })
 
 const playedMatchesMap = computed(() => {
@@ -415,9 +501,65 @@ const leaderboard = computed(() => {
 })
 
 const myLeaderboardRow = computed(() => {
-  const email = normalizedEmail(profile.value.email)
+  const email = currentUserEmail()
   if (!email) return null
   return leaderboard.value.find((r) => normalizedEmail(r.email) === email) || null
+})
+
+const myRank = computed(() => {
+  if (!myLeaderboardRow.value) return null
+  return leaderboard.value.findIndex((r) => r.email === myLeaderboardRow.value.email) + 1
+})
+
+const myPredictionCount = computed(() => {
+  const email = currentUserEmail()
+  if (!email) return 0
+  return myPredictions.value.filter((p) => normalizedEmail(p.user_email) === email).length
+})
+
+const myTodayStats = computed(() => {
+  const email = currentUserEmail()
+  if (!email) {
+    return { totalPredicted: 0, totalEvaluated: 0, exact: 0, good: 0, bad: 0, pending: 0 }
+  }
+
+  const todayKey = localDateKey(new Date())
+  const predictionMap = new Map(
+    myPredictions.value
+      .filter((p) => normalizedEmail(p.user_email) === email)
+      .map((p) => [p.match_id, p])
+  )
+
+  const todayMatches = matches.value.filter((match) => localDateKey(new Date(match.kickoff_at)) === todayKey)
+  let totalPredicted = 0
+  let totalEvaluated = 0
+  let exact = 0
+  let good = 0
+  let bad = 0
+  let pending = 0
+
+  for (const match of todayMatches) {
+    const prediction = predictionMap.get(match.id)
+    if (!prediction || prediction.predicted_home == null || prediction.predicted_away == null) continue
+
+    totalPredicted += 1
+
+    if (match.status !== 'played' || match.home_score == null || match.away_score == null) {
+      pending += 1
+      continue
+    }
+
+    totalEvaluated += 1
+    if (prediction.predicted_home === match.home_score && prediction.predicted_away === match.away_score) {
+      exact += 1
+    } else if (isSameOutcome(prediction.predicted_home, prediction.predicted_away, match.home_score, match.away_score)) {
+      good += 1
+    } else {
+      bad += 1
+    }
+  }
+
+  return { totalPredicted, totalEvaluated, exact, good, bad, pending }
 })
 
 const myBadges = computed(() => {
@@ -787,6 +929,15 @@ function currentUserEmail() {
   return normalizedEmail(profile.value.email || accessEmailInput.value)
 }
 
+function localDateKey(value) {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function pointsForPrediction(prediction, match) {
   if (!prediction || match.status !== 'played') return 0
   if (prediction.predicted_home === match.home_score && prediction.predicted_away === match.away_score) return 3
@@ -963,6 +1114,51 @@ function outcome(home, away) {
   overflow-x: auto;
   margin-bottom: 10px;
 }
+.wc-standings-switcher {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.wc-standings-switcher-label {
+  color: rgba(244,244,242,0.58);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.wc-standings-switcher-controls {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+}
+.wc-standings-switcher-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: transparent;
+  color: rgba(244,244,242,0.72);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.wc-standings-switcher-btn.active {
+  background: linear-gradient(135deg, rgba(232,0,29,0.26), rgba(232,0,29,0.42));
+  color: var(--white);
+  box-shadow: 0 0 0 1px rgba(232,0,29,0.28) inset;
+}
+.wc-standings-switcher-hint {
+  margin: 0;
+  color: rgba(244,244,242,0.6);
+  font-size: 12px;
+  font-family: 'Barlow', sans-serif;
+}
 .wc-group-table {
   width: 100%;
   border-collapse: collapse;
@@ -1094,6 +1290,36 @@ function outcome(home, away) {
   font-size: 13px;
   font-family: 'Barlow', sans-serif;
 }
+.wc-my-stats {
+  display: grid;
+  gap: 12px;
+}
+.wc-my-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.wc-stat-pill {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+.wc-stat-pill span {
+  color: rgba(244,244,242,0.6);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.wc-stat-pill strong {
+  color: var(--white);
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.06em;
+  font-size: 22px;
+}
 
 @media (max-width: 960px) {
   .wc-layout { grid-template-columns: 1fr; }
@@ -1108,6 +1334,9 @@ function outcome(home, away) {
   }
   .wc-group-filter {
     width: 100%;
+  }
+  .wc-my-stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
