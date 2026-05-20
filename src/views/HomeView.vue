@@ -33,7 +33,7 @@ import ContributeModal from '../components/ContributeModal.vue'
 
 const modalOpen = ref(false)
 const results  = ref(DEFAULT_RESULTS)
-const calendar = ref(DEFAULT_CALENDAR)
+const calendar = ref([])
 const events   = ref([])
 const history  = ref(DEFAULT_HISTORY)
 const wcMatches = ref([])
@@ -51,6 +51,9 @@ const settings = ref({ ...DEFAULT_SETTINGS })
 onMounted(async () => {
   const [
     { data: mData },
+    { data: msData },
+    { data: mlData },
+    { data: meData },
     { data: eData },
     { data: hData },
     { data: sData },
@@ -58,6 +61,9 @@ onMounted(async () => {
     { data: wcPData },
   ] = await Promise.all([
     sb.from('matches').select(MATCHES_SELECT),
+    sb.from('match_stats').select('match_id'),
+    sb.from('match_lineups').select('match_id'),
+    sb.from('match_events').select('match_id'),
     sb.from('events').select('*'),
     sb.from('history').select('*').order('date', { ascending: false }),
     sb.from('settings').select('*').eq('id', 1).single(),
@@ -66,7 +72,15 @@ onMounted(async () => {
   ])
 
   if (mData?.length) {
-    const mapped = mData.map(mapMatch)
+    const matchStatsIds = new Set((msData || []).map((row) => row.match_id))
+    const matchLineupIds = new Set((mlData || []).map((row) => row.match_id))
+    const matchEventIds = new Set((meData || []).map((row) => row.match_id))
+    const mapped = mData.map((row) => ({
+      ...mapMatch(row),
+      hasStats: matchStatsIds.has(row.id),
+      hasLineups: matchLineupIds.has(row.id),
+      hasEvents: matchEventIds.has(row.id)
+    }))
     const played   = mapped.filter(m => m.status === 'played')
     const upcoming  = mapped.filter(m => m.status === 'upcoming')
     if (played.length)   results.value  = played

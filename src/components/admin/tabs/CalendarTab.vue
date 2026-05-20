@@ -113,7 +113,7 @@ async function findOrCreateTeam(name) {
 
 onMounted(async () => {
   const [{ data: mData }, { data: tData }, { data: cData }] = await Promise.all([
-    sb.from('matches').select(MATCHES_SELECT).eq('status', 'upcoming'),
+    sb.from('matches').select(MATCHES_SELECT).order('match_date', { ascending: true }),
     sb.from('teams').select('id, name, default_stadium').order('name'),
     sb.from('competitions').select('id, name').order('name'),
   ])

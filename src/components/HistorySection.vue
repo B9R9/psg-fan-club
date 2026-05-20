@@ -1,10 +1,10 @@
 <template>
-  <section class="section section-alt" id="history">
+  <section class="section section-alt" id="memories">
     <div class="section-header">
-      <h2 class="section-title">His<span>tory</span></h2>
+      <h2 class="section-title">{{ t('section_history') }}</h2>
       <div class="section-rule"></div>
     </div>
-    <button class="add-memory-btn" @click="$emit('open-modal')">{{ t('history_add') }}</button>
+    <button v-if="isAuthenticated" class="add-memory-btn" @click="$emit('open-modal')">{{ t('history_add') }}</button>
     <div class="history-timeline">
       <div
         v-for="(m, i) in paginated"
@@ -95,11 +95,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
+import { useAuth } from '../lib/auth.js'
 
 const props = defineProps({ memories: Array })
 defineEmits(['open-modal'])
 
 const { t: tComputed } = useI18n()
+const { isAuthenticated } = useAuth()
 const t = (key) => tComputed.value(key)
 
 const PER_PAGE = 6

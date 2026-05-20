@@ -451,9 +451,11 @@ nav {
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 4px; padding: 20px 24px;
   display: grid; grid-template-columns: 1fr auto 1fr;
-  align-items: center; gap: 12px; transition: border-color 0.2s;
+  align-items: center; gap: 12px; transition: all 0.2s;
+  cursor: pointer;
 }
-.result-card:hover { border-color: rgba(232,0,29,0.25); }
+.result-card:hover { border-color: rgba(232,0,29,0.4); background: rgba(232,0,29,0.08); transform: translateY(-2px); }
+.result-card:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .result-card.win  { border-left: 3px solid #22c55e; }
 .result-card.draw { border-left: 3px solid var(--gold); }
 .result-card.loss { border-left: 3px solid var(--red); }

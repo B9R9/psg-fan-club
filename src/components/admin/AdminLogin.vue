@@ -39,7 +39,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { sb } from '../../lib/supabase.js'
+import { signInWithPassword } from '../../lib/auth.js'
 import { s } from './adminStyles.js'
 
 const emit = defineEmits(['auth'])
@@ -52,7 +52,7 @@ async function submit() {
   if (!email.value || !pw.value) return
   loading.value = true
   err.value = ''
-  const { error } = await sb.auth.signInWithPassword({ email: email.value, password: pw.value })
+  const { error } = await signInWithPassword({ email: email.value, password: pw.value })
   loading.value = false
   if (error) {
     err.value = 'Invalid email or password'

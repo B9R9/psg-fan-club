@@ -37,11 +37,15 @@ defineEmits(['set-tab', 'logout'])
 const TABS = [
   { id:'results',  label:'Results' },
   { id:'calendar', label:'Calendar' },
+  { id:'players',  label:'Players' },
   { id:'world-cup', label:'World Cup' },
   { id:'events',   label:'Events' },
   { id:'history',  label:'History' },
   { id:'members',  label:'Members' },
-  { id:'settings', label:'Settings' },
+  { id:'settings',   label:'Settings' },
+  { id:'transfers',  label:'Transfers' },
+  { id:'trophies',  label:'Trophies' },
+  { id:'survivor',  label:'Survivor' },
 ]
 
 const navBtn = {

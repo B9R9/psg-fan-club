@@ -246,6 +246,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { sb } from '../lib/supabase.js'
 import { useI18n, currentLang } from '../lib/i18n.js'
+import { getCurrentUserDisplayName, getCurrentUserEmail } from '../lib/auth.js'
 
 const { t: tComputed } = useI18n()
 const t = (key) => tComputed.value(key)
@@ -265,11 +266,11 @@ const standingsView = ref('real')
 const accessGranted = ref(false)
 const accessLoading = ref(false)
 const accessError = ref('')
-const accessEmailInput = ref(localStorage.getItem('wc_access_email') || '')
+const accessEmailInput = ref(localStorage.getItem('wc_access_email') || getCurrentUserEmail())
 
 const profile = ref({
-  name: localStorage.getItem('wc_name') || '',
-  email: localStorage.getItem('wc_email') || '',
+  name: localStorage.getItem('wc_name') || getCurrentUserDisplayName(),
+  email: localStorage.getItem('wc_email') || getCurrentUserEmail(),
 })
 
 const myPredictionMap = computed(() => {
@@ -588,6 +589,15 @@ onMounted(async () => {
 })
 
 async function tryAutoGrantAccess() {
+  const authEmail = getCurrentUserEmail()
+  const authName = getCurrentUserDisplayName()
+
+  if (authEmail) {
+    accessEmailInput.value = authEmail
+    profile.value.email = authEmail
+    if (!profile.value.name && authName) profile.value.name = authName
+  }
+
   const email = normalizedEmail(accessEmailInput.value)
   if (!email) return
 
