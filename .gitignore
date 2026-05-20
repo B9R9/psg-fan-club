@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+apply-migration.mjs
  
 # Supabase local temp metadata (regenerated automatically)
 supabase/.temp/
