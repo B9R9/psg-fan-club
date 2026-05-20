@@ -13,8 +13,8 @@
       <div v-if="!activeSurvivor" class="no-survivor">
         <div class="no-survivor-card">
           <div class="no-survivor-icon">🎮</div>
-          <h2>Pas de Survivor actif</h2>
-          <p>En attente du prochain survivor...</p>
+          <h2>{{ t('survivor_no_active_title') }}</h2>
+          <p>{{ t('survivor_no_active_subtitle') }}</p>
         </div>
       </div>
 
@@ -23,23 +23,23 @@
         <!-- Status bar -->
         <div class="survivor-status-bar">
           <div class="status-item">
-            <span class="status-label">Status</span>
-            <span class="status-value">{{ activeSurvivor.status }}</span>
+            <span class="status-label">{{ t('survivor_status_label') }}</span>
+            <span class="status-value">{{ formatSurvivorStatus(activeSurvivor.status) }}</span>
           </div>
           <div class="status-item">
-            <span class="status-label">Type</span>
-            <span class="status-value">{{ activeSurvivor.match_source === 'world_cup' ? 'Coupe du Monde' : 'PSG' }}</span>
+            <span class="status-label">{{ t('survivor_type_label') }}</span>
+            <span class="status-value">{{ formatSurvivorType(activeSurvivor.match_source) }}</span>
           </div>
           <div class="status-item">
-            <span class="status-label">Matchday</span>
+            <span class="status-label">{{ t('survivor_matchday_label') }}</span>
             <span class="status-value">{{ activeSurvivor.current_matchday }} / {{ activeSurvivor.total_matchdays }}</span>
           </div>
           <div class="status-item">
-            <span class="status-label">Participants actifs</span>
+            <span class="status-label">{{ t('survivor_active_participants_label') }}</span>
             <span class="status-value">{{ activeParticipants.length }}</span>
           </div>
           <div class="status-item">
-            <span class="status-label">Éliminés</span>
+            <span class="status-label">{{ t('survivor_eliminated_count_label') }}</span>
             <span class="status-value">{{ eliminatedParticipants.length }}</span>
           </div>
         </div>
@@ -48,11 +48,11 @@
         <div v-if="currentUserParticipant && activeSurvivor.status === 'active' && !forceJoinMode" class="current-user-section">
           <div class="current-user-card">
             <p>
-              Connecté en tant que <strong>{{ currentUserParticipant.participant_name }}</strong>
+              {{ t('survivor_logged_as') }} <strong>{{ currentUserParticipant.participant_name }}</strong>
               ({{ currentUserParticipant.participant_email }})
             </p>
             <button type="button" class="btn-secondary" @click="switchUser">
-              Utiliser un autre nom / email
+              {{ t('survivor_switch_user') }}
             </button>
           </div>
         </div>
@@ -60,11 +60,11 @@
         <!-- Join section (if not joined, or if user wants to switch account) -->
         <div v-if="showJoinForm" class="survivor-join-section">
           <div class="join-card">
-            <h2>Rejoindre le Survivor</h2>
+            <h2>{{ t('survivor_join_title') }}</h2>
             <form @submit.prevent="joinSurvivor">
-              <input v-model="joinForm.name" type="text" placeholder="Votre nom" required />
-              <input v-model="joinForm.email" type="email" placeholder="Votre email" required />
-              <button type="submit" class="btn-primary">Participer</button>
+              <input v-model="joinForm.name" type="text" :placeholder="t('survivor_name_placeholder')" required />
+              <input v-model="joinForm.email" type="email" :placeholder="t('survivor_email_placeholder')" required />
+              <button type="submit" class="btn-primary">{{ t('survivor_join_cta') }}</button>
             </form>
           </div>
         </div>
@@ -75,20 +75,20 @@
             :class="{ active: activeTab === 'predictions' }"
             @click="activeTab = 'predictions'"
           >
-            Mes pronostics
+            {{ t('survivor_tab_predictions') }}
           </button>
           <button
             :class="{ active: activeTab === 'standings' }"
             @click="activeTab = 'standings'"
           >
-            Classement
+            {{ t('survivor_tab_standings') }}
           </button>
           <button
             v-if="currentUserParticipant?.status === 'eliminated'"
             :class="{ active: activeTab === 'eliminated' }"
             @click="activeTab = 'eliminated'"
           >
-            Élimination
+            {{ t('survivor_tab_elimination') }}
           </button>
         </div>
 
@@ -154,7 +154,7 @@
                   {{ getUserPrediction(match.id).prediction === 'home' ? match.home_team : match.away_team }}
                 </span>
                 <span v-if="getUserPrediction(match.id).is_correct !== null" class="badge-result">
-                  {{ getUserPrediction(match.id).is_correct ? '✓ Correct' : '✗ Incorrect' }}
+                  {{ getUserPrediction(match.id).is_correct ? t('survivor_prediction_correct') : t('survivor_prediction_incorrect') }}
                 </span>
                 <button
                   v-if="canCancelPrediction(match.id)"
@@ -176,13 +176,13 @@
 
         <!-- Standings Tab -->
         <div v-if="activeTab === 'standings'" class="tab-content">
-          <h2>Classement</h2>
+          <h2>{{ t('survivor_tab_standings') }}</h2>
           <div class="standings-table">
             <div class="standings-row standing-header">
               <div class="col-rank">#</div>
-              <div class="col-name">Joueur</div>
-              <div class="col-correct">Pronostics</div>
-              <div class="col-status">Status</div>
+              <div class="col-name">{{ t('survivor_player_label') }}</div>
+              <div class="col-correct">{{ t('survivor_predictions_label') }}</div>
+              <div class="col-status">{{ t('survivor_status_label') }}</div>
             </div>
             <div
               v-for="(standing, idx) in standings"
@@ -194,7 +194,7 @@
               <div class="col-name">{{ standing.participant_name }}</div>
               <div class="col-correct">{{ standing.correct_predictions }}/{{ standing.total_predictions }}</div>
               <div class="col-status">
-                <span class="badge" :class="standing.status">{{ standing.status }}</span>
+                <span class="badge" :class="standing.status">{{ formatSurvivorStatus(standing.status) }}</span>
               </div>
             </div>
           </div>
@@ -202,12 +202,12 @@
 
         <!-- Elimination info -->
         <div v-if="activeTab === 'eliminated' && currentUserElimination" class="tab-content">
-          <h2>Votre élimination</h2>
+          <h2>{{ t('survivor_elimination_title') }}</h2>
           <div class="elimination-card">
-            <p>Vous avez été éliminé pour le match <strong>#{{ currentUserElimination.match_id }}</strong></p>
-            <p v-if="currentUserElimination.reason">Raison: {{ currentUserElimination.reason }}</p>
-            <p class="elimination-date">Le {{ formatDate(currentUserElimination.eliminated_at) }}</p>
-            <p class="next-survivor">Vous pourrez rejoindre le prochain survivor quando il sera lancé.</p>
+            <p>{{ t('survivor_elimination_match_prefix') }} <strong>#{{ currentUserElimination.match_id }}</strong></p>
+            <p v-if="currentUserElimination.reason">{{ t('survivor_reason_label') }}: {{ currentUserElimination.reason }}</p>
+            <p class="elimination-date">{{ t('survivor_elimination_date_prefix') }} {{ formatDate(currentUserElimination.eliminated_at) }}</p>
+            <p class="next-survivor">{{ t('survivor_next_join_hint') }}</p>
           </div>
         </div>
       </template>
@@ -222,7 +222,7 @@ import { sb } from '../lib/supabase.js'
 import { getCurrentUserEmail, getCurrentUserDisplayName } from '../lib/auth.js'
 
 const { t } = useI18n()
-const surveyorSubtitle = 'Fais tes pronostics, reste en vie ou sois éliminé!'
+const surveyorSubtitle = t('survivor_subtitle')
 
 const activeSurvivor = ref(null)
 const allParticipants = ref([])
@@ -327,6 +327,18 @@ function formatDate(dateStr) {
   if (!dateStr) return ''
   const date = new Date(dateStr)
   return date.toLocaleDateString('fr-FR')
+}
+
+function formatSurvivorStatus(status) {
+  const key = `survivor_status_${String(status || '').toLowerCase()}`
+  const translated = t(key)
+  return translated === key ? status : translated
+}
+
+function formatSurvivorType(source) {
+  if (source === 'world_cup') return t('survivor_type_world_cup')
+  if (source === 'club') return t('survivor_type_club')
+  return source || ''
 }
 
 function extractWorldCupGroup(match) {
